@@ -14,6 +14,7 @@ import org.zowe.apiml.caching.model.KeyValue;
 import org.zowe.apiml.caching.service.Messages;
 import org.zowe.apiml.caching.service.Storage;
 import org.zowe.apiml.caching.service.StorageException;
+import org.zowe.apiml.caching.service.inmemory.config.InMemoryConfig;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,11 +23,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class InMemoryStorage implements Storage {
     private Map<String, Map<String, KeyValue>> storage = new ConcurrentHashMap<>();
+    private int currentSize = 0;
+    private InMemoryConfig inMemoryConfig;
 
-    public InMemoryStorage() {
+    public InMemoryStorage(InMemoryConfig inMemoryConfig) {
+        this.inMemoryConfig = inMemoryConfig;
     }
 
-    protected InMemoryStorage(Map<String, Map<String, KeyValue>> storage) {
+    protected InMemoryStorage(InMemoryConfig inMemoryConfig, Map<String, Map<String, KeyValue>> storage) {
+        this(inMemoryConfig);
         this.storage = storage;
     }
 
@@ -39,7 +44,10 @@ public class InMemoryStorage implements Storage {
         if (serviceStorage.containsKey(toCreate.getKey())) {
             throw new StorageException(Messages.DUPLICATE_KEY.getKey(), Messages.DUPLICATE_KEY.getStatus(), toCreate.getKey());
         }
+        currentSize += toCreate.toString().length();
+
         serviceStorage.put(toCreate.getKey(), toCreate);
+
         return toCreate;
     }
 
@@ -65,6 +73,11 @@ public class InMemoryStorage implements Storage {
         }
 
         Map<String, KeyValue> serviceStorage = storage.get(serviceId);
+
+        KeyValue previousVersion = serviceStorage.get(key);
+        int changeOfSize = toUpdate.toString().length() - previousVersion.toString().length();
+        currentSize += changeOfSize;
+
         serviceStorage.put(key, toUpdate);
         return toUpdate;
     }
@@ -78,7 +91,11 @@ public class InMemoryStorage implements Storage {
         }
 
         Map<String, KeyValue> serviceSpecificStorage = storage.get(serviceId);
-        return serviceSpecificStorage.remove(key);
+        KeyValue removed = serviceSpecificStorage.remove(key);
+
+        currentSize -= removed.toString().length();
+
+        return removed;
     }
 
     @Override
