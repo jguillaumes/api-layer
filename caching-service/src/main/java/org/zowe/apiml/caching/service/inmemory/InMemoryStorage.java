@@ -44,9 +44,11 @@ public class InMemoryStorage implements Storage {
         if (serviceStorage.containsKey(toCreate.getKey())) {
             throw new StorageException(Messages.DUPLICATE_KEY.getKey(), Messages.DUPLICATE_KEY.getStatus(), toCreate.getKey());
         }
-        currentSize += toCreate.toString().length();
+        int sizeofKeyValue = getSize(toCreate);
+        verifyTotalSize(sizeofKeyValue, toCreate.getKey());
 
         serviceStorage.put(toCreate.getKey(), toCreate);
+        currentSize += sizeofKeyValue;
 
         return toCreate;
     }
@@ -75,7 +77,9 @@ public class InMemoryStorage implements Storage {
         Map<String, KeyValue> serviceStorage = storage.get(serviceId);
 
         KeyValue previousVersion = serviceStorage.get(key);
-        int changeOfSize = toUpdate.toString().length() - previousVersion.toString().length();
+        int changeOfSize = getSize(toUpdate) - getSize(previousVersion);
+        verifyTotalSize(changeOfSize, toUpdate.getKey());
+
         currentSize += changeOfSize;
 
         serviceStorage.put(key, toUpdate);
@@ -93,7 +97,7 @@ public class InMemoryStorage implements Storage {
         Map<String, KeyValue> serviceSpecificStorage = storage.get(serviceId);
         KeyValue removed = serviceSpecificStorage.remove(key);
 
-        currentSize -= removed.toString().length();
+        currentSize -= getSize(removed);
 
         return removed;
     }
@@ -106,5 +110,16 @@ public class InMemoryStorage implements Storage {
     private boolean isKeyNotInCache(String serviceId, String keyToTest) {
         Map<String, KeyValue> serviceSpecificStorage = storage.get(serviceId);
         return serviceSpecificStorage == null || serviceSpecificStorage.get(keyToTest) == null;
+    }
+
+    private void verifyTotalSize(int sizeOfNew, String key) {
+        log.info("Current Size {}. Size of newly added element: {}", currentSize, sizeOfNew);
+        if(currentSize + sizeOfNew > inMemoryConfig.getMaxDataSize()) {
+            throw new StorageException(Messages.INSUFFICIENT_STORAGE.getKey(), Messages.INSUFFICIENT_STORAGE.getStatus(), key);
+        }
+    }
+
+    private int getSize(KeyValue keyValue) {
+        return keyValue.getKey().length() + keyValue.getValue().length();
     }
 }
