@@ -114,7 +114,7 @@ public class InMemoryStorage implements Storage {
 
     private void verifyTotalSize(int sizeOfNew, String key) {
         log.info("Current Size {}. Size of newly added element: {}", currentSize, sizeOfNew);
-        if(currentSize + sizeOfNew > inMemoryConfig.getMaxDataSize()) {
+        if (currentSize + sizeOfNew > inMemoryConfig.getMaxDataSize()) {
             throw new StorageException(Messages.INSUFFICIENT_STORAGE.getKey(), Messages.INSUFFICIENT_STORAGE.getStatus(), key);
         }
     }
