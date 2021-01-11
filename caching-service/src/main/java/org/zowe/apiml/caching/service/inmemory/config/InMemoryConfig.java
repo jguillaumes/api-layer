@@ -12,7 +12,6 @@ package org.zowe.apiml.caching.service.inmemory.config;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.zowe.apiml.caching.config.GeneralConfig;
 

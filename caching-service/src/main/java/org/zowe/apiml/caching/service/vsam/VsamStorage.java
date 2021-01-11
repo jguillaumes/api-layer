@@ -52,7 +52,7 @@ public class VsamStorage implements Storage {
         log.info("Writing record: {}|{}|{}", serviceId, toCreate.getKey(), toCreate.getValue());
         KeyValue result = null;
 
-        if(!isSpaceAvailable() && vsamConfig.getGeneralConfig().getEvictionStrategy().equals("reject")) {
+        if (!isSpaceAvailable() && vsamConfig.getGeneralConfig().getEvictionStrategy().equals("reject")) {
             throw new StorageException(Messages.INSUFFICIENT_STORAGE.getKey(), Messages.INSUFFICIENT_STORAGE.getStatus(), toCreate.getKey());
         }
 
