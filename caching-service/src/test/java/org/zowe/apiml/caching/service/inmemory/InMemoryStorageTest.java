@@ -35,8 +35,8 @@ public class InMemoryStorageTest {
         testingStorage = new HashMap<>();
         GeneralConfig generalConfig = new GeneralConfig();
         generalConfig.setEvictionStrategy("reject");
+        generalConfig.setMaxDataSize(10);
         config = new InMemoryConfig(generalConfig);
-        config.setMaxDataSize(10);
         underTest = new InMemoryStorage(config, testingStorage);
     }
 
@@ -145,8 +145,8 @@ public class InMemoryStorageTest {
     void givenTheStorageIsFull_whenNewKeyValueIsAdded_thenTheInsufficientStorageExceptionIsRaised() {
         GeneralConfig generalConfig = new GeneralConfig();
         generalConfig.setEvictionStrategy("reject");
+        generalConfig.setMaxDataSize(1);
         config = new InMemoryConfig(generalConfig);
-        config.setMaxDataSize(1);
 
         underTest = new InMemoryStorage(config);
                         underTest.create("customService", new KeyValue("key", "willFit"));

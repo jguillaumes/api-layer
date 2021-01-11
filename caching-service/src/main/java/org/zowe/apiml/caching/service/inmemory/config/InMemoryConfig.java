@@ -22,8 +22,4 @@ import org.zowe.apiml.caching.config.GeneralConfig;
 @RequiredArgsConstructor
 public class InMemoryConfig {
     private final GeneralConfig generalConfig;
-
-    @Value("${caching.storage.inmemory.size:100}")
-    private int maxDataSize;
-
 }

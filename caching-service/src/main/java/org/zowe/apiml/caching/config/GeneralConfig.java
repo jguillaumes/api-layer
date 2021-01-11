@@ -20,4 +20,7 @@ import org.springframework.context.annotation.Configuration;
 public class GeneralConfig {
     @Value("${caching.storage.evictionStrategy:reject}")
     private String evictionStrategy;
+
+    @Value("${caching.storage.inmemory.size:100}")
+    private int maxDataSize;
 }
