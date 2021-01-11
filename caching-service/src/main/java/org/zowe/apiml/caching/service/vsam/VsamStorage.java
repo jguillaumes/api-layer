@@ -52,6 +52,10 @@ public class VsamStorage implements Storage {
         log.info("Writing record: {}|{}|{}", serviceId, toCreate.getKey(), toCreate.getValue());
         KeyValue result = null;
 
+        if(!isSpaceAvailable() && vsamConfig.getGeneralConfig().getEvictionStrategy().equals("reject")) {
+            throw new StorageException(Messages.INSUFFICIENT_STORAGE.getKey(), Messages.INSUFFICIENT_STORAGE.getStatus(), toCreate.getKey());
+        }
+
         try (VsamFile file = new VsamFile(vsamConfig, VsamConfig.VsamOptions.WRITE)) {
 
             VsamRecord record = new VsamRecord(vsamConfig, serviceId, toCreate);
@@ -67,7 +71,14 @@ public class VsamStorage implements Storage {
             throw new StorageException(Messages.DUPLICATE_KEY.getKey(), Messages.DUPLICATE_KEY.getStatus(), toCreate.getKey(), serviceId);
         }
 
+        incrementAmountOfRecordsInMetadata();
+
         return result;
+    }
+
+    private boolean isSpaceAvailable() {
+        KeyValue amountOfRecords = read("zowe-caching", "amountOfRecords");
+        return Integer.parseInt(amountOfRecords.getValue()) < vsamConfig.getGeneralConfig().getMaxDataSize();
     }
 
     @Override
@@ -136,7 +147,21 @@ public class VsamStorage implements Storage {
             throw new StorageException(Messages.KEY_NOT_IN_CACHE.getKey(), Messages.KEY_NOT_IN_CACHE.getStatus(), toDelete, serviceId);
         }
 
+        decrementAmountOfRecordsInMetadata();
+
         return result;
+    }
+
+    private void decrementAmountOfRecordsInMetadata() {
+        KeyValue amountOfRecords = read("zowe-caching", "amountOfRecords");
+        int updatedValue = Integer.parseInt(amountOfRecords.getValue()) - 1;
+        update("zowe-caching", new KeyValue(amountOfRecords.getKey(), Integer.toString(updatedValue)));
+    }
+
+    private void incrementAmountOfRecordsInMetadata() {
+        KeyValue amountOfRecords = read("zowe-caching", "amountOfRecords");
+        int updatedValue = Integer.parseInt(amountOfRecords.getValue()) + 1;
+        update("zowe-caching", new KeyValue(amountOfRecords.getKey(), Integer.toString(updatedValue)));
     }
 
     @Override
