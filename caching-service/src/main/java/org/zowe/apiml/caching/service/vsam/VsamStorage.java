@@ -55,12 +55,13 @@ public class VsamStorage implements Storage {
         try (VsamFile file = new VsamFile(vsamConfig, VsamConfig.VsamOptions.WRITE)) {
 
             VsamRecord record = new VsamRecord(vsamConfig, serviceId, toCreate);
-            List<VsamRecord> storedData = file.readForService(serviceId);
+            List<String> storedData = file.readRecords();
             if (storedData.size() == 10000) {
                 if (vsamConfig.getGeneralConfig().getEvictionStrategy().equals("reject")) {
                     throw new StorageException(Messages.INSUFFICIENT_STORAGE.getKey(),
                         Messages.INSUFFICIENT_STORAGE.getStatus(), toCreate.getKey(), serviceId);
                 } else {
+                    //TODO apply different eviction strategy to delete the oldest item
                     storedData.remove(0);
                 }
             }
@@ -161,6 +162,17 @@ public class VsamStorage implements Storage {
         returned.forEach(vsamRecord -> result.put(vsamRecord.getKeyValue().getKey(), vsamRecord.getKeyValue()));
 
         return result;
+    }
+
+    @Override
+    public List<String> readRecords() {
+
+        log.info("Reading All Records:");
+        List<String> returned;
+        try (VsamFile file = new VsamFile(vsamConfig, VsamConfig.VsamOptions.READ)) {
+            returned = file.readRecords();
+        }
+        return returned;
     }
 
 }
