@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.zowe.apiml.caching.model.KeyValue;
 import org.zowe.apiml.caching.service.Storage;
 import org.zowe.apiml.caching.service.StorageException;
+import org.zowe.apiml.caching.service.vsam.VsamInitializer;
 import org.zowe.apiml.caching.service.vsam.VsamStorage;
 
 @Configuration
@@ -24,11 +25,12 @@ import org.zowe.apiml.caching.service.vsam.VsamStorage;
 @Slf4j
 public class VsamConfiguration {
     private final VsamConfig vsamConfig;
+    private final VsamInitializer vsamInitializer;
 
     @ConditionalOnProperty(name = "caching.storage.mode", havingValue = "vsam")
     @Bean
     public Storage vsam() {
-        VsamStorage storage = new VsamStorage(vsamConfig);
+        VsamStorage storage = new VsamStorage(vsamConfig, vsamInitializer);
         createMetadataRecord(storage);
         return storage;
     }
