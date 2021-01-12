@@ -79,6 +79,7 @@ public class VsamFile implements Closeable {
         if (zfile != null) {
             try {
                 zfile.close();
+                log.info("ZFile was properly closed.");
             } catch (ZFileException e) {
                 log.error("Closing ZFile failed");
             }
